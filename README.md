@@ -21,11 +21,11 @@ The filter block supports 5 selectable modes via the 3-bit `filter_mode` input:
 
 | Mode (`filter_mode`) | Type | Description |
 |---|---|---|
-| `3'b000` | **Ideal Low-Pass (LPF)** | Passes frequencies within radius $D \le \text{cutoff}$, blocks high-frequency noise. |
-| `3'b001` | **Ideal High-Pass (HPF)** | Passes frequencies beyond radius $D > \text{cutoff}$, extracts edges and details. |
+| `3'b000` | **Ideal Low-Pass (LPF)** | Passes frequencies within radius D <= cutoff, blocks high-frequency noise. |
+| `3'b001` | **Ideal High-Pass (HPF)** | Passes frequencies beyond radius D > cutoff, extracts edges and details. |
 | `3'b010` | **Gaussian Low-Pass (GLPF)** | Smooth attenuation using precomputed Gaussian ROM factors. |
-| `3'b011` | **Gaussian High-Pass (GHPF)** | Smooth edge preservation by inverting Gaussian coefficients ($1.0 - H_{LP}$). |
-| `3'b100` | **Passthrough** | Bypasses filtering (raw FFT $\to$ IFFT) to verify system integrity and round-trip accuracy. |
+| `3'b011` | **Gaussian High-Pass (GHPF)** | Smooth edge preservation by inverting Gaussian coefficients (1.0 - H_LP). |
+| `3'b100` | **Passthrough** | Bypasses filtering (raw FFT -> IFFT) to verify system integrity and round-trip accuracy. |
 
 ---
 
@@ -35,15 +35,15 @@ The architecture is fully parameterized to support customizable image dimensions
 
 | Parameter | Default | Description |
 |---|---|---|
-| `MAX_ROW_STAGES` | `8` | $\log_2(\text{max image height})$. Default $8 \implies 256$ rows max. |
-| `MAX_COL_STAGES` | `8` | $\log_2(\text{max image width})$. Default $8 \implies 256$ columns max. |
+| `MAX_ROW_STAGES` | `10` | Log base 2 of the maximum image height. Default 10 means a maximum of 1024 rows. |
+| `MAX_COL_STAGES` | `10` | Log base 2 of the maximum image width. Default 10 means a maximum of 1024 columns. |
 | `PIXEL_WIDTH` | `16` | Bit-width of input and output pixels. |
 | `TWIDDLE_WIDTH` | `16` | Bit-width of twiddle factors (Q15 format). |
 | `FRAC_BITS` | `15` | Number of fractional bits for fixed-point math. |
-| `BUTTERFLY_FACTOR` | `6` | Parallelism: \(2^{\mathrm{BUTTERFLY\_FACTOR}} = 64\) parallel butterfly units. |
-| `TWIDDLE_MAX_STAGES` | `10` | Maximum twiddle depth supported by the ROM ($2^{10} = 1024$ points). |
+| `BUTTERFLY_FACTOR` | `6` | Parallelism: 2^BUTTERFLY_FACTOR = 64 parallel butterfly units. |
+| `TWIDDLE_MAX_STAGES` | `10` | Maximum twiddle depth supported by the ROM: 2^10 = 1024 points. |
 
-*Note: Runtime dimensions are dynamically set using the `row_stage` and `col_stage` ports ($N = 2^{\text{stage}}$, e.g., $8 \times 8$, $64 \times 64$, $256 \times 256$).*
+*Note: Runtime dimensions are dynamically set using the `row_stage` and `col_stage` ports. The dimension is N = 2^stage; examples include 8 x 8, 64 x 64, and 256 x 256.*
 
 ---
 
@@ -86,7 +86,7 @@ Place your source image in `PYTHON/image/input_sample.jpg` and run:
 python PYTHON/add_noise.py
 ```
 
-This resizes the image to the configured resolution (default $256 \times 256$), injects frequency or spatial noise, saves the noisy preview to `PYTHON/image/input_noisy.png`, and writes formatted pixels to `TOP/sim/fft_input.txt`.
+This resizes the image to the configured resolution (default 256 x 256), injects frequency or spatial noise, saves the noisy preview to `PYTHON/image/input_noisy.png`, and writes formatted pixels to `TOP/sim/fft_input.txt`.
 
 ### 2. Run Hardware Simulation
 
@@ -120,7 +120,7 @@ python PYTHON/reconstruct_image.py
 
 The script:
 - Reads the raw real outputs from `TOP/sim/ifft_output.txt`.
-- Clips and formats pixel intensities to $[0, 255]$.
+- Clips and formats pixel intensities to the range 0 to 255.
 - Saves the final result to `PYTHON/image/filtered.png`.
 - Computes Mean Squared Error (MSE) and Peak Signal-to-Noise Ratio (PSNR) against the original image.
 
@@ -131,19 +131,23 @@ The script:
 Each processing core can also be simulated and verified individually:
 
 ### Standalone 2D FFT:
+
 ```powershell
 python FFT/script/generate_samples.py
 vlog -work FFT/work FFT/rom/fft_twiddle_rom.v FFT/rtl/fft_butterfly.v FFT/rtl/fft.v FFT/sim/tb_fft.v
 vsim -c -work FFT/work tb_fft -do "run -all; quit"
 python FFT/script/verify_output.py
 ```
+
 *Compares hardware frequency outputs against an analytical 2D DFT calculated in Python.*
 
 ### Standalone 2D IFFT:
+
 ```powershell
 # (Note: Run the FFT simulation above first so FFT/sim/output_results.txt is available)
 vlog -work IFFT/work FFT/rom/fft_twiddle_rom.v IFFT/rtl/ifft_butterfly.v IFFT/rtl/ifft.v IFFT/sim/tb_ifft.v
 vsim -c -work IFFT/work tb_ifft -do "run -all; quit"
 python IFFT/script/verify_output.py
 ```
-*Loads frequency bins from `FFT/sim/output_results.txt` and verifies round-trip reconstruction against original image pixels (Max Error $\le 1$ LSB).*
+
+*Loads frequency bins from `FFT/sim/output_results.txt` and verifies round-trip reconstruction against original image pixels (maximum error <= 1 LSB).*
