@@ -1,7 +1,7 @@
 module image_proc_top #(
     parameter TWIDDLE_MAX_STAGES  = 10,
-    parameter MAX_ROW_STAGES      = 8,
-    parameter MAX_COL_STAGES      = 8,
+    parameter MAX_ROW_STAGES      = 10,
+    parameter MAX_COL_STAGES      = 10,
     parameter INPUT_STAGE_WIDTH   = 4,
     parameter BUTTERFLY_FACTOR    = 6,
     parameter TWIDDLE_WIDTH       = 16,
