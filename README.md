@@ -40,7 +40,7 @@ The architecture is fully parameterized to support customizable image dimensions
 | `PIXEL_WIDTH` | `16` | Bit-width of input and output pixels. |
 | `TWIDDLE_WIDTH` | `16` | Bit-width of twiddle factors (Q15 format). |
 | `FRAC_BITS` | `15` | Number of fractional bits for fixed-point math. |
-| `BUTTERFLY_FACTOR` | `6` | Parallelism: $2^{\text{BUTTERFLY\_FACTOR}} = 64$ parallel butterfly units. |
+| `BUTTERFLY_FACTOR` | `6` | Parallelism: \(2^{\mathrm{BUTTERFLY\_FACTOR}} = 64\) parallel butterfly units. |
 | `TWIDDLE_MAX_STAGES` | `10` | Maximum twiddle depth supported by the ROM ($2^{10} = 1024$ points). |
 
 *Note: Runtime dimensions are dynamically set using the `row_stage` and `col_stage` ports ($N = 2^{\text{stage}}$, e.g., $8 \times 8$, $64 \times 64$, $256 \times 256$).*
