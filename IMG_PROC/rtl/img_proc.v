@@ -5,8 +5,8 @@
 //   3'b011 – Gaussian High-Pass
 //   3'b100 – Passthrough
 module img_proc #(
-    parameter MAX_ROW_STAGES = 8,
-    parameter MAX_COL_STAGES = 8,
+    parameter MAX_ROW_STAGES = 10,
+    parameter MAX_COL_STAGES = 10,
     parameter INPUT_STAGE_WIDTH = 4,
     parameter DATA_WIDTH = 32,
     parameter FRAC_BITS = 15,
